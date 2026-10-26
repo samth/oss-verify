@@ -1,0 +1,14 @@
+# Until the fuzzing harness (racket/src/fuzz) is merged into racket/racket,
+# this builds Sam Tobin-Hochstadt's racket-fuzzing branch.
+repo: https://github.com/samth/racket#racket-fuzzing
+primary_contact: samth@racket-lang.org
+homepage: https://racket-lang.org
+language: c
+sanitizers: [address, undefined]
+fuzz_targets:
+  - racket_read_fuzzer
+  - racket_print-roundtrip_fuzzer
+  - racket_number_fuzzer
+  - racket_regexp_fuzzer
+  - racket_fasl_fuzzer
+  - racket_eval_fuzzer
