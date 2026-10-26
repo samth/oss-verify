@@ -9,6 +9,10 @@ on:
         description: "Build a second time from scratch and compare the bytes"
         type: boolean
         default: true
+      checks:
+        description: "Measure the checks of the fuzz targets and the binaries (tools/check --checks)"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -28,19 +32,34 @@ jobs:
           df -h /
           dpkg -s python3-yaml > /dev/null 2>&1 || { sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml; }
 
+      - name: Get qemu-riscv64-static 10.0.11, as the Build check does
+        if: inputs.checks
+        run: |
+          mkdir "$RUNNER_TEMP/qemu" && cd "$RUNNER_TEMP/qemu"
+          deb=qemu-user_10.0.11+ds-0+deb13u1_amd64.deb
+          curl -fsSL --retry 3 -o "$deb" https://snapshot.debian.org/file/a0eaa62f815efb2361d43b1e3f8011c17ad9123a
+          echo "6b6fea55551fbcc1eb30e146ad5abdfbb49f8fa8c5998016242126de4d7f80df  $deb" | sha256sum -c --quiet
+          dpkg-deb -x "$deb" . && ln -s qemu-riscv64 usr/bin/qemu-riscv64-static
+          usr/bin/qemu-riscv64-static --version | grep -q 'version 10\.0\.11'
+          echo "$RUNNER_TEMP/qemu/usr/bin" >> "$GITHUB_PATH"
+
       - name: Pull the pinned toolchain image
         run: docker pull "$(python3 tools/check --print-toolchain projects/racket < /dev/null)"
 
       - name: Build with tools/check
         env:
           TWICE: ${{ inputs.twice }}
+          CHECKS: ${{ inputs.checks }}
         run: |
           code=0
           twice=; [ "$TWICE" = true ] && twice=--twice
-          python3 tools/check --no-shell $twice --dir "$RUNNER_TEMP/check" \
+          checks=; [ "$CHECKS" = true ] && checks="--checks $RUNNER_TEMP/checks.md --checks-budget 45"
+          python3 tools/check --no-shell $twice $checks --dir "$RUNNER_TEMP/check" \
             --summary "$RUNNER_TEMP/check-summary.md" projects/racket < /dev/null || code=$?
           echo "tools/check exited $code" >> "$GITHUB_STEP_SUMMARY"
-          [ -f "$RUNNER_TEMP/check-summary.md" ] && cat "$RUNNER_TEMP/check-summary.md" >> "$GITHUB_STEP_SUMMARY"
+          for f in "$RUNNER_TEMP/check-summary.md" "$RUNNER_TEMP/checks.md"; do
+            [ -f "$f" ] && { echo >> "$GITHUB_STEP_SUMMARY"; cat "$f" >> "$GITHUB_STEP_SUMMARY"; }
+          done
           df -h /
           exit "$code"
 
@@ -51,5 +70,6 @@ jobs:
           name: racket-check
           path: |
             ${{ runner.temp }}/check/manifest.yaml
+            ${{ runner.temp }}/checks.md
             ${{ runner.temp }}/check/out/
           if-no-files-found: warn
