@@ -1,0 +1,48 @@
+# Builds projects/racket twice with tools/check, each in its own directory, and shows where the plain builds of one
+# fuzz target differ. Not for upstream.
+name: "Racket build diff"
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Fuzz target to compare"
+        default: racket_eval_fuzzer
+
+permissions:
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (sha-pinned)
+        with:
+          persist-credentials: false
+
+      - name: Make room and install PyYAML and pyelftools
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          dpkg -s python3-yaml > /dev/null 2>&1 || { sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml; }
+          pip install --user pyelftools
+
+      - name: Pull the pinned toolchain image
+        run: docker pull "$(python3 tools/check --print-toolchain projects/racket < /dev/null)"
+
+      - name: Build twice
+        run: |
+          for d in a b; do
+            python3 tools/check --no-shell --dir "$RUNNER_TEMP/$d" projects/racket < /dev/null
+            docker image prune -f > /dev/null
+          done
+
+      - name: Compare
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          for build in plain asan; do
+            echo "=== $TARGET.$build"
+            python3 .github/racket/diff-builds.py "$RUNNER_TEMP/a/out/$TARGET/$TARGET.$build" \
+              "$RUNNER_TEMP/b/out/$TARGET/$TARGET.$build" || true
+          done

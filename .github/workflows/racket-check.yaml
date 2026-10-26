@@ -3,8 +3,6 @@
 name: "Racket check"
 
 on:
-  push:
-    branches: [racket-check]
   workflow_dispatch:
     inputs:
       twice:
@@ -35,7 +33,7 @@ jobs:
 
       - name: Build with tools/check
         env:
-          TWICE: ${{ github.event_name == 'push' || inputs.twice }}
+          TWICE: ${{ inputs.twice }}
         run: |
           code=0
           twice=; [ "$TWICE" = true ] && twice=--twice
