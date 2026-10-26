@@ -3,6 +3,9 @@
 name: "Racket build diff"
 
 on:
+  push:
+    branches: [racket-check]
+    paths: [.github/workflows/racket-diff.yaml]
   workflow_dispatch:
     inputs:
       target:
@@ -39,7 +42,7 @@ jobs:
 
       - name: Compare
         env:
-          TARGET: ${{ inputs.target }}
+          TARGET: ${{ inputs.target || 'racket_eval_fuzzer' }}
         run: |
           for build in plain asan; do
             echo "=== $TARGET.$build"
