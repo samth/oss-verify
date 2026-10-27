@@ -12,3 +12,4 @@ fuzz_targets:
   - racket_regexp_fuzzer
   - racket_fasl_fuzzer
   - racket_eval_fuzzer
+  - racket_heap-eval_fuzzer

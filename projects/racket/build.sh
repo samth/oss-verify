@@ -1,6 +1,5 @@
 #!/bin/bash -eu
-# Copyright 2026 Sam Tobin-Hochstadt
-# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
 # Builds the Racket CS fuzz targets of racket/src/fuzz into $OUT: static riscv64 musl, no
 # threads, boot files and modules embedded in each target.
@@ -65,7 +64,7 @@ $CC -c -Ulinux -Uunix $FUZZ/embed-data.S -o $WORK/embed-data.o \
 # property, and no files read except the input; FUZZ_OSS_VERIFY handles
 # the first two, and naming an addon directory keeps Racket from
 # reading "/etc/passwd" to find the home directory
-for t in eval read print-roundtrip number regexp fasl ; do
+for t in eval heap-eval read print-roundtrip number regexp fasl ; do
   $CC $CFLAGS -static -I$R/include/racket -DFUZZ_EMBEDDED \
     -DFUZZ_OSS_VERIFY -DFUZZ_ADDON_DIR='"/nonexistent/racket-addon"' \
     -DFUZZ_ENTRY="\"fuzz-$t\"" $FUZZ/driver.c $WORK/embed-data.o \
