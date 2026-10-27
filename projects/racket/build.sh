@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 # Copyright 2026 Sam Tobin-Hochstadt
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # Builds the Racket CS fuzz targets of racket/src/fuzz into $OUT: static riscv64 musl, no
 # threads, boot files and modules embedded in each target.
