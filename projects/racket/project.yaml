@@ -5,6 +5,7 @@ primary_contact: samth@racket-lang.org
 homepage: https://racket-lang.org
 language: c
 sanitizers: [address, undefined]
+mutants: racket/src/fuzz/mutants
 fuzz_targets:
   - racket_read_fuzzer
   - racket_print-roundtrip_fuzzer
