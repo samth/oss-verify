@@ -1,5 +1,4 @@
-# Copyright 2026 Sam Tobin-Hochstadt
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
 # Racket CS on the OSS Verify builder. tools/check passes REPO, COMMIT and BASE_BUILDER.
 ARG BASE_BUILDER=oss-verify-base-builder
