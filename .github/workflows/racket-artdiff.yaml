@@ -41,4 +41,4 @@ jobs:
           a=$(find . -path '*twice*' -prune -o -name "$TARGET.plain" -print | head -1)
           b=$(find . -path '*twice*' -name "$TARGET.plain" | head -1)
           echo "a=$a b=$b"
-          python3 "$GITHUB_WORKSPACE/.github/racket/diff-builds.py" "$a" "$b" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 "$GITHUB_WORKSPACE/.github/racket/diff-embedded.py" "$a" "$b" | tee -a "$GITHUB_STEP_SUMMARY"
