@@ -74,4 +74,5 @@ jobs:
             ${{ runner.temp }}/check/manifest.yaml
             ${{ runner.temp }}/checks.md
             ${{ runner.temp }}/check/out/
+            ${{ runner.temp }}/check/twice/out/
           if-no-files-found: warn
