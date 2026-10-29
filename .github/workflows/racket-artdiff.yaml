@@ -2,11 +2,14 @@
 name: "Racket artifact diff"
 
 on:
+  push:
+    branches: [racket-check]
+    paths: [.github/workflows/racket-artdiff.yaml]
   workflow_dispatch:
     inputs:
       run_id:
         description: "The Racket check run whose artifact holds out/ and twice/out/"
-        required: true
+        default: "40915293143"
       target:
         description: "Fuzz target to compare"
         default: racket_eval_fuzzer
@@ -26,12 +29,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: racket-check
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ inputs.run_id || '40915293143' }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/art
       - name: Compare
         env:
-          TARGET: ${{ inputs.target }}
+          TARGET: ${{ inputs.target || 'racket_eval_fuzzer' }}
         run: |
           cd "$RUNNER_TEMP/art"
           find . -name "$TARGET.plain" | head
