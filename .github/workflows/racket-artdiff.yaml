@@ -1,0 +1,41 @@
+# Shows where the two builds of a "Racket check" run with --twice differ, from that run's artifact. Not for upstream.
+name: "Racket artifact diff"
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "The Racket check run whose artifact holds out/ and twice/out/"
+        required: true
+      target:
+        description: "Fuzz target to compare"
+        default: racket_eval_fuzzer
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (sha-pinned)
+        with:
+          persist-credentials: false
+      - run: pip install --user pyelftools
+      - uses: actions/download-artifact@v4
+        with:
+          name: racket-check
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art
+      - name: Compare
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          cd "$RUNNER_TEMP/art"
+          find . -name "$TARGET.plain" | head
+          a=$(find . -path '*twice*' -prune -o -name "$TARGET.plain" -print | head -1)
+          b=$(find . -path '*twice*' -name "$TARGET.plain" | head -1)
+          echo "a=$a b=$b"
+          python3 "$GITHUB_WORKSPACE/.github/racket/diff-builds.py" "$a" "$b" | tee -a "$GITHUB_STEP_SUMMARY"
