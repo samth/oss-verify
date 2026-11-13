@@ -49,13 +49,15 @@ jobs:
       - name: Build with tools/check
         env:
           TWICE: ${{ inputs.twice }}
+          # one breakage build at a time: parallel Racket builds starve the runner
+          OVC_JOBS: "1"
           CHECKS: ${{ inputs.checks }}
         run: |
           code=0
           # disk and memory every 5 minutes, since a runner that runs out of either is shut down without a log
           (while sleep 300; do echo "[usage] $(df -h / | tail -1) | $(free -m | sed -n 2p)"; done) &
           twice=; [ "$TWICE" = true ] && twice=--twice
-          checks=; [ "$CHECKS" = true ] && checks="--checks $RUNNER_TEMP/checks.md --checks-budget 45"
+          checks=; [ "$CHECKS" = true ] && checks="--checks $RUNNER_TEMP/checks.md --checks-budget 240"
           python3 tools/check --no-shell $twice $checks --dir "$RUNNER_TEMP/check" \
             --summary "$RUNNER_TEMP/check-summary.md" projects/racket < /dev/null || code=$?
           echo "tools/check exited $code" >> "$GITHUB_STEP_SUMMARY"
