@@ -344,8 +344,10 @@ def export_coverage(tag, binaries, profiles, *, labels):
         mine = profiles / target
         if not mine.is_dir() or not any(mine.glob("*.profraw")):
             continue
+        # -skip-expansions: the checks read only each file's segments and the functions, which it leaves as they
+        # are, and the expansion records of a macro-heavy C library can take more memory than the runner has.
         script = ('llvm-profdata merge -sparse -o /tmp/merged.profdata /profiles/*.profraw && '
-                  'llvm-cov export -format=text -instr-profile=/tmp/merged.profdata /binary')
+                  'llvm-cov export -format=text -skip-expansions -instr-profile=/tmp/merged.profdata /binary')
         text = check_build.output("docker", "run", "--rm", "--network=none", *labels, "-v", f"{mine}:/profiles:ro",
                                   "-v", f"{binary}:/binary:ro", "--entrypoint", "sh", tag, "-c", script)
         try:
